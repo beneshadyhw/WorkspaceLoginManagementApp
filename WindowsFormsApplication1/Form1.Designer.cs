@@ -39,6 +39,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.eventLog1 = new System.Diagnostics.EventLog();
             this.closeButton = new System.Windows.Forms.Button();
+            this.chkRememberPw = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.eventLog1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -95,7 +96,7 @@
             this.LoginAddress.Name = "LoginAddress";
             this.LoginAddress.Size = new System.Drawing.Size(227, 27);
             this.LoginAddress.TabIndex = 3;
-            this.LoginAddress.Text = "https://139.159.230.43";
+            this.LoginAddress.Text = "https://";
             // 
             // PasswordTextBox
             // 
@@ -104,7 +105,6 @@
             this.PasswordTextBox.Name = "PasswordTextBox";
             this.PasswordTextBox.Size = new System.Drawing.Size(227, 26);
             this.PasswordTextBox.TabIndex = 3;
-            this.PasswordTextBox.Text = "Solid@1234";
             this.PasswordTextBox.UseSystemPasswordChar = true;
             // 
             // UsernameTextBox
@@ -114,7 +114,6 @@
             this.UsernameTextBox.Name = "UsernameTextBox";
             this.UsernameTextBox.Size = new System.Drawing.Size(227, 26);
             this.UsernameTextBox.TabIndex = 3;
-            this.UsernameTextBox.Text = "solidworks03";
             // 
             // label4
             // 
@@ -145,11 +144,22 @@
             this.closeButton.UseVisualStyleBackColor = false;
             this.closeButton.Click += new System.EventHandler(this.closeButton_Click);
             // 
+            // chkRememberPw
+            // 
+            this.chkRememberPw.AutoSize = true;
+            this.chkRememberPw.Location = new System.Drawing.Point(187, 222);
+            this.chkRememberPw.Name = "chkRememberPw";
+            this.chkRememberPw.Size = new System.Drawing.Size(72, 16);
+            this.chkRememberPw.TabIndex = 5;
+            this.chkRememberPw.Text = "记住密码";
+            this.chkRememberPw.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(504, 275);
+            this.Controls.Add(this.chkRememberPw);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.UsernameTextBox);
             this.Controls.Add(this.PasswordTextBox);
@@ -163,6 +173,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "云桌面登录管理工具";
+            this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.eventLog1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -181,6 +192,7 @@
         private System.Windows.Forms.Label label4;
         private System.Diagnostics.EventLog eventLog1;
         private System.Windows.Forms.Button closeButton;
+        private System.Windows.Forms.CheckBox chkRememberPw;
     }
 }
 

@@ -22,5 +22,53 @@ namespace WorkspaceLoginManagement.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://")]
+        public string AddressTextBox {
+            get {
+                return ((string)(this["AddressTextBox"]));
+            }
+            set {
+                this["AddressTextBox"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string UNTextBox {
+            get {
+                return ((string)(this["UNTextBox"]));
+            }
+            set {
+                this["UNTextBox"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PWTextBox {
+            get {
+                return ((string)(this["PWTextBox"]));
+            }
+            set {
+                this["PWTextBox"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CheckBox {
+            get {
+                return ((bool)(this["CheckBox"]));
+            }
+            set {
+                this["CheckBox"] = value;
+            }
+        }
     }
 }

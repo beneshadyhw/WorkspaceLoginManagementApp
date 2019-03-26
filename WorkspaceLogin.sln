@@ -1,7 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2036
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkspaceLoginManagementApp", "WindowsFormsApplication1\WorkspaceLoginManagementApp.csproj", "{6A62D5A3-031A-4192-AF66-A35871D9CFD6}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup1", "Setup1\Setup1.vdproj", "{48C17099-6208-4D02-AA6E-1194D282E635}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +17,13 @@ Global
 		{6A62D5A3-031A-4192-AF66-A35871D9CFD6}.Debug|x86.Build.0 = Debug|x86
 		{6A62D5A3-031A-4192-AF66-A35871D9CFD6}.Release|x86.ActiveCfg = Release|x86
 		{6A62D5A3-031A-4192-AF66-A35871D9CFD6}.Release|x86.Build.0 = Release|x86
+		{48C17099-6208-4D02-AA6E-1194D282E635}.Debug|x86.ActiveCfg = Debug
+		{48C17099-6208-4D02-AA6E-1194D282E635}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5AB3781F-7F39-4C23-8FEE-BE0F86AC408C}
 	EndGlobalSection
 EndGlobal

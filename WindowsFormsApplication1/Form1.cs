@@ -16,6 +16,8 @@ using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
+
 
 namespace WorkspaceLoginManagement
 {
@@ -34,6 +36,21 @@ namespace WorkspaceLoginManagement
         public Form1()
         {
             InitializeComponent();
+        }
+
+        public void WriteLog(string documentName, string msg)
+        {
+            string errorLogFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log");
+            if (!System.IO.Directory.Exists(errorLogFilePath))
+            {
+                System.IO.Directory.CreateDirectory(errorLogFilePath);
+            }
+            string logFile = System.IO.Path.Combine(errorLogFilePath, documentName + "@" + DateTime.Today.ToString("yyyy-MM-dd") + ".txt");
+            bool writeBaseInfo = System.IO.File.Exists(logFile);
+            StreamWriter swLogFile = new StreamWriter(logFile, true, Encoding.Unicode);
+            swLogFile.WriteLine(DateTime.Now.ToString("HH:mm:ss") + "\t" + msg);
+            swLogFile.Close();
+            swLogFile.Dispose();
         }
 
         private static bool CheckValidatioinResult(object sender, X509Certificate certificate, X509Chain chane, SslPolicyErrors errors)
@@ -68,24 +85,31 @@ namespace WorkspaceLoginManagement
             request.ContentType = "application/json";
             request.Method = "Post";
 
-            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            
+            try
             {
-                string json = JsonConvert.SerializeObject(values, Formatting.Indented);
+                using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+                {
+                    string json = JsonConvert.SerializeObject(values, Formatting.Indented);
 
-                streamWriter.Write(json);
+                    streamWriter.Write(json);
+                }
+                var response = (HttpWebResponse)request.GetResponse();
+                var streamReader = new StreamReader(response.GetResponseStream());
+
+                result = streamReader.ReadToEnd();
+                streamReader.Dispose();
+                streamReader.Close();
             }
-
-            var response = (HttpWebResponse)request.GetResponse();
-            if(response.StatusCode != HttpStatusCode.OK)
+            catch(WebException e)
             {
-
+                //MessageBox.Show("网络连接失败。错误码：" + response.StatusCode.ToString());
+                
+                MessageBox.Show(e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadingControl.getLoading().CloseLoadingForm();
+                System.Environment.Exit(0);
             }
-
-            var streamReader = new StreamReader(response.GetResponseStream());
-
-            result = streamReader.ReadToEnd();
-            streamReader.Dispose();
-            streamReader.Close();
+            
 
             return result;
         }
@@ -99,7 +123,9 @@ namespace WorkspaceLoginManagement
             loginTokens.Add("state", vmDict["state"].ToString());
             loginTokens.Add("sid", vmDict["sid"].ToString());
             loginTokens.Add("farmId", vmDict["farmId"].ToString());
-            loginTokens.Add("name", vmDict["name"].ToString());
+            loginTokens.Add("dgId", vmDict["dgId"].ToString());
+            loginTokens.Add("type", vmDict["type"].ToString());
+            loginTokens.Add("name", userName);
             try
             {
                 loginTokens.Add("vmDomain", vmDict["vmDomain"].ToString());
@@ -126,10 +152,16 @@ namespace WorkspaceLoginManagement
                 "vmName={2}&domain={3}&farmId={4}&gwIps={5}";
             clientURL = string.Format(clientURL, loginTokens["loginTicket"], loginTokens["addressTicket"], 
                 loginTokens["name"], loginTokens["vmDomain"], loginTokens["farmId"], loginTokens["gwIps"]);
+            WriteLog("log", String.Format("[INFO] client url created: {0}", clientURL));
 
-            Console.WriteLine("client url created: {0}", clientURL);
-
-            System.Diagnostics.Process.Start("iexplore.exe", clientURL);
+            try
+            {
+                System.Diagnostics.Process.Start("iexplore.exe", clientURL);
+            }
+            catch(Exception e)
+            {
+                WriteLog("log", String.Format("[ERROR] Start IExplore failed: {0}", e.Message));
+            }
 
             return;
         }
@@ -139,6 +171,14 @@ namespace WorkspaceLoginManagement
             string result = "";
             byte[] strBytes = Encoding.Default.GetBytes(source);
             result = Convert.ToBase64String(strBytes);
+            return result;
+        }
+
+        private static string DecodeBase64(string source)
+        {
+            string result = "";
+            byte[] strBytes = Convert.FromBase64String(source);
+            result = Encoding.UTF8.GetString(strBytes);
             return result;
         }
 
@@ -154,11 +194,15 @@ namespace WorkspaceLoginManagement
                 {"id", loginTokens["sid"] },
                 {"tokenId", tokenId },
                 {"farmId", loginTokens["farmId"] },
+                {"type", loginTokens["type"] },
+                {"dgId", loginTokens["dgId"] },
                 {"userInfo", userInfo }
             };
+            //ConvertToString()
             string url = baseURI + loginURI;
+            WriteLog("log", "loginVm request body: " + values);
             string result = HTTPSPost(url, values);
-            Console.WriteLine("login VM called");
+            WriteLog("log", "loginVm result"+result);
             return result;
         }
 
@@ -183,6 +227,7 @@ namespace WorkspaceLoginManagement
         }
         private void LoginButton_Click(object sender, EventArgs e)
         {
+            //Control.CheckForIllegalCrossThreadCalls = false;
             LoadingControl pLoading = LoadingControl.getLoading();
             pLoading.SetExecuteMethod(LoginButton_Work);
             pLoading.ShowDialog();
@@ -193,10 +238,11 @@ namespace WorkspaceLoginManagement
             LoadingControl pLoading = LoadingControl.getLoading();
             pLoading.SetCaptionAndDescription("执行进度", "请等待", "正在获取TokenID...");
             Console.WriteLine("button clicked");
+            WriteLog("log", "[INFO] Login Button Clicked");
             loginAddress = LoginAddress.Text;
             baseURI = string.Format("{0}/services/api/", loginAddress);
             string authURL = baseURI + authURI;
-
+            WriteLog("log", "[INFO] auth URL created: " + authURL);
             //TODO: Button control
             if(loginTokens.Count != 0)
             {
@@ -217,7 +263,8 @@ namespace WorkspaceLoginManagement
 
             if(string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(passWord))
             {
-                MessageBox.Show("请输入用户名密码");
+                MessageBox.Show("请输入用户名密码", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                LoadingControl.getLoading().CloseLoadingForm();
                 return;
             };
 
@@ -228,13 +275,13 @@ namespace WorkspaceLoginManagement
                 {"password", passWord}
             };
             string result = HTTPSPost(authURL, values);
-            //log: auth api called
+            WriteLog("log", "[INFO] auth API called: "+result);
             
             int resultCode;
             Int32.TryParse(GetTokenStr(result, "resultCode"), out resultCode);
             if(resultCode != 0)
             {
-                MessageBox.Show("登录失败，请检查用户名密码。");
+                MessageBox.Show("登录失败，请检查用户名密码。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 LoadingControl.getLoading().CloseLoadingForm();
                 return;
             }
@@ -248,20 +295,19 @@ namespace WorkspaceLoginManagement
                 {"tokenId", tokenId }
             };
             string vmResult = HTTPSPost(VmListURL, VmValues);
+            WriteLog("log", "vmList result: " + vmResult);
             //log vmlist api called
             SetLoginTokens(vmResult);
             string state = loginTokens["state"];
-            Console.WriteLine("VM state get");
+            WriteLog("log", "VM state get, state = " + state);
 
             pLoading.SetCaptionAndDescription("执行进度", "请等待", "正在登陆到云桌面...");
-            //string loginVmJson = string.Empty;
             switch (state)
             {
                 case "CONNECTED":
-                    DialogResult dialogResult = MessageBox.Show("当前桌面正在使用，是否抢占登陆", "提示", MessageBoxButtons.YesNo);
+                    DialogResult dialogResult = MessageBox.Show("当前桌面正在使用，是否抢占登陆", "提示", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation); 
                     if(dialogResult == DialogResult.Yes)
                     {
-                        //loginVmJson = LoginVmApi();
                         LoginRunningVm(LoginVmApi());
                         Console.WriteLine("yes");
                     }
@@ -280,7 +326,7 @@ namespace WorkspaceLoginManagement
                         maxAttempt++;
                         if(maxAttempt == 36)
                         {
-                            MessageBox.Show("接入云桌面失败！请联系管理员或者拨打华为云服务热线。");
+                            MessageBox.Show("接入云桌面失败！请联系管理员或者拨打华为云服务热线。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             break;
                         }
                     }
@@ -293,6 +339,7 @@ namespace WorkspaceLoginManagement
                     break;
             }
             LoadingControl.getLoading().CloseLoadingForm();
+            RememberInput(EncodeBase64(passWord));
         }
 
         private void closeButton_Click(object sender, EventArgs e)
@@ -300,5 +347,35 @@ namespace WorkspaceLoginManagement
             this.Close();
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                LoginAddress.Text = Properties.Settings.Default.AddressTextBox;
+                UsernameTextBox.Text = Properties.Settings.Default.UNTextBox;
+                chkRememberPw.Checked = Properties.Settings.Default.CheckBox;
+                if (chkRememberPw.Checked)
+                {
+                    PasswordTextBox.Text = DecodeBase64(Properties.Settings.Default.PWTextBox);
+                }
+            }catch(Exception ex)
+            {
+                MessageBox.Show("读取用户配置失败，请联系管理员！", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                WriteLog("log", String.Format("[Error] Read User config failed ({0}). Current user: {1};\n " +
+                    "Login Address text: {2}; Username text: {3}", ex.Message, Environment.UserName, Properties.Settings.Default.AddressTextBox, Properties.Settings.Default.UNTextBox));
+            }
+        }
+
+        private void RememberInput(string encodedPw)
+        {
+            Properties.Settings.Default.AddressTextBox = LoginAddress.Text;
+            Properties.Settings.Default.UNTextBox = UsernameTextBox.Text;
+            if (chkRememberPw.Checked)
+            {
+                Properties.Settings.Default.PWTextBox = encodedPw;
+            }
+            Properties.Settings.Default.CheckBox = chkRememberPw.Checked;
+            Properties.Settings.Default.Save();
+        }
     }
 }
